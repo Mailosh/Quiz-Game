@@ -1,340 +1,210 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kvíz</title>
-    <style>
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #f0f4f8;
-            color: #333;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            min-height: 100vh;
+import React, { useState } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+
+const Quiz = () => {
+  const [teamNames, setTeamNames] = useState(['', '', '']);
+  const [gameStarted, setGameStarted] = useState(false);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [scores, setScores] = useState({ team1: 0, team2: 0, team3: 0 });
+  const [teamAnswers, setTeamAnswers] = useState({
+    team1: null,
+    team2: null,
+    team3: null
+  });
+  const [gameFinished, setGameFinished] = useState(false);
+  const [showCorrectAnswer, setShowCorrectAnswer] = useState(false);
+
+  const questions = [ /* ...your questions here... */ ];
+
+  const handleTeamNameChange = (index, value) => {
+    const newTeamNames = [...teamNames];
+    newTeamNames[index] = value;
+    setTeamNames(newTeamNames);
+  };
+
+  const startGame = () => {
+    if (teamNames.every(name => name.trim() !== '')) {
+      setGameStarted(true);
+    } else {
+      alert('Prosím, zadajte názvy všetkých tímov');
+    }
+  };
+
+  const handleTeamAnswer = (team, answer) => {
+    setTeamAnswers(prev => ({
+      ...prev,
+      [team]: answer
+    }));
+  };
+
+  const checkAnswersAndProceed = () => {
+    if (Object.values(teamAnswers).every(answer => answer !== null)) {
+      const newScores = { ...scores };
+      Object.entries(teamAnswers).forEach(([team, answer]) => {
+        if (answer === questions[currentQuestion].correct) {
+          newScores[team] += 1;
         }
+      });
+      setScores(newScores);
+      setTeamAnswers({ team1: null, team2: null, team3: null });
 
-        .fullscreen-button {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background-color: #00796b;
-            color: #ffffff;
-            border: none;
-            border-radius: 5px;
-            padding: 10px;
-            cursor: pointer;
-            font-size: 1rem;
-        }
+      if (currentQuestion === questions.length - 1) {
+        setGameFinished(true);
+      } else {
+        setCurrentQuestion(prev => prev + 1);
+      }
+    }
+  };
 
-        .fullscreen-button:hover {
-            background-color: #004d40;
-        }
+  const evaluateAnswers = () => {
+    setShowCorrectAnswer(true);
+  };
 
-        .progress {
-            width: 100%;
-            background-color: #e0e0e0;
-            border-radius: 5px;
-            overflow: hidden;
-            margin-bottom: 20px;
-        }
+  const getWinner = () => {
+    const maxScore = Math.max(scores.team1, scores.team2, scores.team3);
+    const winners = [];
+    if (scores.team1 === maxScore) winners.push(teamNames[0]);
+    if (scores.team2 === maxScore) winners.push(teamNames[1]);
+    if (scores.team3 === maxScore) winners.push(teamNames[2]);
+    return winners.length > 1 ? "Remíza medzi: " + winners.join(", ") : "Víťazom je: " + winners[0];
+  };
 
-        .progress-bar {
-            height: 20px;
-            background-color: #64b5f6;
-            width: 0%;
-            transition: width 0.4s;
-        }
+  if (!gameStarted) {
+    return (
+      <div className="font-['Roboto',sans-serif] bg-gray-50 min-h-screen p-4">
+        <Card className="w-full max-w-4xl mx-auto shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-2xl text-center">Zadajte názvy tímov</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {teamNames.map((name, index) => (
+              <div key={index} className="flex items-center space-x-2">
+                <span className="w-20">Tím {index + 1}:</span>
+                <Input
+                  value={name}
+                  onChange={(e) => handleTeamNameChange(index, e.target.value)}
+                  placeholder={`Názov tímu ${index + 1}`}
+                />
+              </div>
+            ))}
+            <Button onClick={startGame} className="w-full mt-4">
+              Začať hru
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
-        .quiz-container {
-            background-color: #ffffff;
-            border: 1px solid #dee2e6;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            max-width: 900px;
-            width: 95%;
-            margin-top: 10px;
-        }
+  if (gameFinished) {
+    return (
+      <div className="font-['Roboto',sans-serif] bg-gray-50 min-h-screen p-4">
+        <Card className="w-full max-w-4xl mx-auto shadow-lg">
+          <CardHeader className="bg-gradient-to-r from-pink-50 to-purple-50">
+            <CardTitle className="text-2xl text-center text-gray-700">
+              Koniec hry!
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="text-center space-y-4">
+              <h2 className="text-3xl font-bold text-gray-800">{getWinner()}</h2>
+              <div className="space-y-2">
+                <p className="text-xl">{teamNames[0]}: {scores.team1} bodov</p>
+                <p className="text-xl">{teamNames[1]}: {scores.team2} bodov</p>
+                <p className="text-xl">{teamNames[2]}: {scores.team3} bodov</p>
+              </div>
+              <div className="mt-8 bg-black rounded-lg p-4">
+                <div className="text-white text-xl mb-2">
+                  NEMÁM PROBLÉM S ALKOHOLOM.
+                </div>
+                <div className="text-white text-xl mb-4">
+                  IBA BEZ NEHO
+                </div>
+                <div className="text-white text-lg italic">
+                  - PETER STAŠÁK, OBJAVITEĽ
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
-        .scores {
-            display: flex;
-            justify-content: space-around;
-            margin-bottom: 15px;
-        }
-
-        .score {
-            font-size: 1.2rem;
-            font-weight: bold;
-            padding: 10px;
-            border-radius: 10px;
-            text-align: center;
-            width: 30%;
-        }
-
-        .score:nth-child(1) {
-            background-color: #e8f5e9;
-            color: #2e7d32;
-        }
-
-        .score:nth-child(2) {
-            background-color: #fff3e0;
-            color: #f57c00;
-        }
-
-        .score:nth-child(3) {
-            background-color: #e3f2fd;
-            color: #1565c0;
-        }
-
-        .question {
-            font-size: 1.8rem;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
-        .layout {
-            display: flex;
-            align-items: flex-start;
-            gap: 20px;
-        }
-
-        .options {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .teams {
-            display: flex;
-            justify-content: space-around;
-            flex-grow: 1;
-            gap: 10px;
-        }
-
-        .team {
-            background-color: #ffffff;
-            border: 1px solid #dee2e6;
-            border-radius: 10px;
-            padding: 10px;
-            flex-grow: 1;
-            text-align: center;
-            font-weight: bold;
-        }
-
-        .team-controls {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            align-items: center;
-        }
-
-        .team-controls button {
-            width: 100%;
-            padding: 10px;
-            font-size: 1rem;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .team-controls button.selected {
-            background-color: #aed581;
-        }
-
-        .team-controls button.disabled {
-            background-color: #e0e0e0;
-            cursor: not-allowed;
-        }
-
-        .controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 20px;
-        }
-
-        .controls button {
-            background-color: #e0f7fa;
-            border: none;
-            border-radius: 5px;
-            padding: 10px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .controls button:hover {
-            background-color: #b2ebf2;
-        }
-
-        @media (max-width: 600px) {
-            .question {
-                font-size: 1.4rem;
-            }
-
-            .controls button {
-                padding: 8px;
-                font-size: 0.9rem;
-            }
-
-            .team {
-                padding: 8px;
-                font-size: 0.9rem;
-            }
-        }
-    </style>
-</head>
-<body>
-    <button class="fullscreen-button" onclick="toggleFullScreen()">Full Screen</button>
-    <div class="progress">
-        <div class="progress-bar" id="progress-bar"></div>
+  return (
+    <div className="font-['Roboto',sans-serif] bg-gray-50 min-h-screen p-4">
+      <Card className="w-full max-w-4xl mx-auto shadow-lg">
+        <CardHeader className="bg-gradient-to-r from-pink-50 to-purple-50">
+          <CardTitle className="flex justify-between items-center text-2xl">
+            <span className="text-gray-700">Otázka {currentQuestion + 1}/10</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="space-y-6">
+            <div className="text-xl font-medium text-gray-800">
+              {questions[currentQuestion].question}
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr>
+                    <th className="border p-2">Možnosti</th>
+                    {teamNames.map((name, index) => (
+                      <th key={index} className="border p-2 text-center">
+                        {name}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {questions[currentQuestion].options.map((option, optionIndex) => (
+                    <tr key={optionIndex}>
+                      <td className="border p-2">{option}</td>
+                      {['team1', 'team2', 'team3'].map((team, teamIndex) => (
+                        <td key={`${team}-${optionIndex}`} className="border p-2 text-center">
+                          <Button
+                            onClick={() => handleTeamAnswer(team, optionIndex)}
+                            variant={teamAnswers[team] === optionIndex ? "default" : "outline"}
+                            className={`w-full ${showCorrectAnswer && optionIndex === questions[currentQuestion].correct ? 'bg-green-500' : ''}`}
+                          >
+                            {String.fromCharCode(65 + optionIndex)}
+                          </Button>
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="flex justify-between">
+              <div className="space-y-2">
+                {teamNames.map((name, index) => (
+                  <p key={index} className="font-medium">
+                    {name}: {scores[`team${index + 1}`]} bodov
+                  </p>
+                ))}
+              </div>
+              <Button 
+                onClick={evaluateAnswers}
+                className="self-end"
+              >
+                Vyhodnotenie
+              </Button>
+            </div>
+            <Button 
+              onClick={checkAnswersAndProceed}
+              disabled={!Object.values(teamAnswers).every(answer => answer !== null)}
+              className="self-end mt-4"
+            >
+              Ďalšia otázka
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
-    <div class="quiz-container" id="quiz">
-        <div class="scores">
-            <div class="score" id="score1">1. tím: 0</div>
-            <div class="score" id="score2">2. tím: 0</div>
-            <div class="score" id="score3">3. tím: 0</div>
-        </div>
-        <div class="question" id="question">Otázka sa načítava...</div>
-        <div class="layout">
-            <div class="options" id="options"></div>
-            <div class="teams" id="teams"></div>
-        </div>
-        <div class="controls">
-            <button onclick="previousQuestion()" id="prev-button" disabled><-- Späť</button>
-            <button onclick="evaluateQuestion()" id="evaluate-button" disabled>Vyhodnotenie</button>
-            <button onclick="nextQuestion()" id="next-button" disabled>Ďalej --></button>
-        </div>
-    </div>
+  );
+};
 
-    <script>
-        const questions = [
-            {
-                question: "Ktoré mesto je známe ako kolíska renesancie?",
-                options: ["Rím", "Florencia", "Paríž", "Atény"],
-                correct: 1
-            },
-            {
-                question: "Čo objavil Isaac Newton, keď mu na hlavu spadlo jablko?",
-                options: ["Teóriu gravitácie", "Teóriu relativity", "Elektrinu", "Atómovú teóriu"],
-                correct: 0
-            },
-            {
-                question: "Ktorá rieka je najdlhšia na svete?",
-                options: ["Amazonka", "Níl", "Jang-c'-ťiang", "Mississippi"],
-                correct: 1
-            }
-        ];
-
-        let currentQuestion = 0;
-        let scores = [0, 0, 0];
-        let teamAnswers = [null, null, null];
-
-        function loadQuestion() {
-            const questionElement = document.getElementById('question');
-            const optionsElement = document.getElementById('options');
-            const teamsElement = document.getElementById('teams');
-            const progressBar = document.getElementById('progress-bar');
-
-            questionElement.innerText = `Otázka ${currentQuestion + 1}/${questions.length}: ${questions[currentQuestion].question}`;
-
-            progressBar.style.width = `${((currentQuestion + 1) / questions.length) * 100}%`;
-
-            optionsElement.innerHTML = '';
-            teamsElement.innerHTML = '';
-
-            questions[currentQuestion].options.forEach((option, index) => {
-                const optionElement = document.createElement('button');
-                optionElement.innerText = `${String.fromCharCode(65 + index)}. ${option}`;
-                optionElement.classList.add('team-controls', 'option');
-                optionsElement.appendChild(optionElement);
-            });
-
-            for (let i = 0; i < scores.length; i++) {
-                const teamElement = document.createElement('div');
-                teamElement.classList.add('team');
-                teamElement.id = `team${i + 1}`;
-
-                const teamControls = document.createElement('div');
-                teamControls.classList.add('team-controls');
-
-                questions[currentQuestion].options.forEach((_, index) => {
-                    const button = document.createElement('button');
-                    button.innerText = String.fromCharCode(65 + index);
-                    button.onclick = () => selectOption(index, i);
-                    button.id = `team${i + 1}-option${index}`;
-                    teamControls.appendChild(button);
-                });
-
-                teamElement.appendChild(teamControls);
-                teamsElement.appendChild(teamElement);
-            }
-
-            document.getElementById('evaluate-button').disabled = true;
-            teamAnswers = [null, null, null];
-        }
-
-        function selectOption(optionIndex, teamIndex) {
-            if (teamAnswers[teamIndex] !== null) return;
-
-            teamAnswers[teamIndex] = optionIndex;
-            document.getElementById(`team${teamIndex + 1}-option${optionIndex}`).classList.add('selected');
-
-            if (teamAnswers.every(answer => answer !== null)) {
-                document.getElementById('evaluate-button').disabled = false;
-            }
-        }
-
-        function evaluateQuestion() {
-            for (let i = 0; i < teamAnswers.length; i++) {
-                if (teamAnswers[i] === questions[currentQuestion].correct) {
-                    scores[i] += 1;
-                }
-            }
-            updateScores();
-            document.getElementById('next-button').disabled = false;
-        }
-
-        function updateScores() {
-            for (let i = 0; i < scores.length; i++) {
-                document.getElementById(`score${i + 1}`).innerText = `${i + 1}. tím: ${scores[i]}`;
-            }
-        }
-
-        function nextQuestion() {
-            if (currentQuestion < questions.length - 1) {
-                currentQuestion++;
-                loadQuestion();
-                document.getElementById('prev-button').disabled = false;
-                document.getElementById('next-button').disabled = true;
-            } else {
-                alert('Kvíz ukončený!');
-            }
-        }
-
-        function previousQuestion() {
-            if (currentQuestion > 0) {
-                currentQuestion--;
-                loadQuestion();
-                document.getElementById('next-button').disabled = true;
-            }
-        }
-
-        function toggleFullScreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen();
-            } else if (document.exitFullscreen) {
-                document.exitFullscreen();
-            }
-        }
-
-        loadQuestion();
-    </script>
-</body>
-</html>
+export default Quiz;
