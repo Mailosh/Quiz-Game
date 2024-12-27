@@ -18,6 +18,23 @@
             min-height: 100vh;
         }
 
+        .fullscreen-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #00796b;
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .fullscreen-button:hover {
+            background-color: #004d40;
+        }
+
         .progress {
             width: 100%;
             background-color: #e0e0e0;
@@ -39,34 +56,69 @@
             border-radius: 10px;
             padding: 20px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            max-width: 800px;
-            width: 90%;
+            max-width: 900px;
+            width: 95%;
             margin-top: 10px;
         }
 
+        .scores {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 15px;
+        }
+
+        .score {
+            font-size: 1.2rem;
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+            width: 30%;
+        }
+
+        .score:nth-child(1) {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .score:nth-child(2) {
+            background-color: #fff3e0;
+            color: #f57c00;
+        }
+
+        .score:nth-child(3) {
+            background-color: #e3f2fd;
+            color: #1565c0;
+        }
+
         .question {
-            font-size: 1.5rem;
+            font-size: 1.8rem;
             margin-bottom: 15px;
             text-align: center;
+        }
+
+        .layout {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
         }
 
         .options {
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            align-items: center;
+            gap: 10px;
         }
 
         .teams {
             display: flex;
             justify-content: space-around;
-            margin: 20px 0;
+            flex-grow: 1;
             gap: 10px;
         }
 
         .team {
-            background-color: #e8f5e9;
-            border: 1px solid #a5d6a7;
+            background-color: #ffffff;
+            border: 1px solid #dee2e6;
             border-radius: 10px;
             padding: 10px;
             flex-grow: 1;
@@ -74,14 +126,30 @@
             font-weight: bold;
         }
 
-        .team:nth-child(2) {
-            background-color: #fff3e0;
-            border-color: #ffcc80;
+        .team-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            align-items: center;
         }
 
-        .team:nth-child(3) {
-            background-color: #e3f2fd;
-            border-color: #90caf9;
+        .team-controls button {
+            width: 100%;
+            padding: 10px;
+            font-size: 1rem;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .team-controls button.selected {
+            background-color: #aed581;
+        }
+
+        .team-controls button.disabled {
+            background-color: #e0e0e0;
+            cursor: not-allowed;
         }
 
         .controls {
@@ -105,24 +173,9 @@
             background-color: #b2ebf2;
         }
 
-        .team-controls {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            align-items: center;
-        }
-
-        .team-controls button {
-            width: 100%;
-            padding: 8px;
-            font-size: 0.9rem;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-        }
-
         @media (max-width: 600px) {
             .question {
-                font-size: 1.2rem;
+                font-size: 1.4rem;
             }
 
             .controls button {
@@ -138,45 +191,25 @@
     </style>
 </head>
 <body>
+    <button class="fullscreen-button" onclick="toggleFullScreen()">Full Screen</button>
     <div class="progress">
         <div class="progress-bar" id="progress-bar"></div>
     </div>
     <div class="quiz-container" id="quiz">
+        <div class="scores">
+            <div class="score" id="score1">1. tím: 0</div>
+            <div class="score" id="score2">2. tím: 0</div>
+            <div class="score" id="score3">3. tím: 0</div>
+        </div>
         <div class="question" id="question">Otázka sa načítava...</div>
-        <div class="options" id="options"></div>
-        <div class="teams" id="teams">
-            <div class="team" id="team1">
-                1. tím: 0
-                <div class="team-controls">
-                    <button onclick="selectOption(0, 0)">A</button>
-                    <button onclick="selectOption(1, 0)">B</button>
-                    <button onclick="selectOption(2, 0)">C</button>
-                    <button onclick="selectOption(3, 0)">D</button>
-                </div>
-            </div>
-            <div class="team" id="team2">
-                2. tím: 0
-                <div class="team-controls">
-                    <button onclick="selectOption(0, 1)">A</button>
-                    <button onclick="selectOption(1, 1)">B</button>
-                    <button onclick="selectOption(2, 1)">C</button>
-                    <button onclick="selectOption(3, 1)">D</button>
-                </div>
-            </div>
-            <div class="team" id="team3">
-                3. tím: 0
-                <div class="team-controls">
-                    <button onclick="selectOption(0, 2)">A</button>
-                    <button onclick="selectOption(1, 2)">B</button>
-                    <button onclick="selectOption(2, 2)">C</button>
-                    <button onclick="selectOption(3, 2)">D</button>
-                </div>
-            </div>
+        <div class="layout">
+            <div class="options" id="options"></div>
+            <div class="teams" id="teams"></div>
         </div>
         <div class="controls">
-            <button onclick="previousQuestion()"><-- Späť</button>
-            <button onclick="evaluateQuestion()">Vyhodnotenie</button>
-            <button onclick="nextQuestion()">Ďalej --></button>
+            <button onclick="previousQuestion()" id="prev-button" disabled><-- Späť</button>
+            <button onclick="evaluateQuestion()" id="evaluate-button" disabled>Vyhodnotenie</button>
+            <button onclick="nextQuestion()" id="next-button" disabled>Ďalej --></button>
         </div>
     </div>
 
@@ -206,6 +239,7 @@
         function loadQuestion() {
             const questionElement = document.getElementById('question');
             const optionsElement = document.getElementById('options');
+            const teamsElement = document.getElementById('teams');
             const progressBar = document.getElementById('progress-bar');
 
             questionElement.innerText = `Otázka ${currentQuestion + 1}/${questions.length}: ${questions[currentQuestion].question}`;
@@ -213,18 +247,48 @@
             progressBar.style.width = `${((currentQuestion + 1) / questions.length) * 100}%`;
 
             optionsElement.innerHTML = '';
+            teamsElement.innerHTML = '';
+
             questions[currentQuestion].options.forEach((option, index) => {
-                const optionElement = document.createElement('div');
-                optionElement.classList.add('option');
+                const optionElement = document.createElement('button');
                 optionElement.innerText = `${String.fromCharCode(65 + index)}. ${option}`;
+                optionElement.classList.add('team-controls', 'option');
                 optionsElement.appendChild(optionElement);
             });
 
+            for (let i = 0; i < scores.length; i++) {
+                const teamElement = document.createElement('div');
+                teamElement.classList.add('team');
+                teamElement.id = `team${i + 1}`;
+
+                const teamControls = document.createElement('div');
+                teamControls.classList.add('team-controls');
+
+                questions[currentQuestion].options.forEach((_, index) => {
+                    const button = document.createElement('button');
+                    button.innerText = String.fromCharCode(65 + index);
+                    button.onclick = () => selectOption(index, i);
+                    button.id = `team${i + 1}-option${index}`;
+                    teamControls.appendChild(button);
+                });
+
+                teamElement.appendChild(teamControls);
+                teamsElement.appendChild(teamElement);
+            }
+
+            document.getElementById('evaluate-button').disabled = true;
             teamAnswers = [null, null, null];
         }
 
         function selectOption(optionIndex, teamIndex) {
+            if (teamAnswers[teamIndex] !== null) return;
+
             teamAnswers[teamIndex] = optionIndex;
+            document.getElementById(`team${teamIndex + 1}-option${optionIndex}`).classList.add('selected');
+
+            if (teamAnswers.every(answer => answer !== null)) {
+                document.getElementById('evaluate-button').disabled = false;
+            }
         }
 
         function evaluateQuestion() {
@@ -234,11 +298,12 @@
                 }
             }
             updateScores();
+            document.getElementById('next-button').disabled = false;
         }
 
         function updateScores() {
             for (let i = 0; i < scores.length; i++) {
-                document.getElementById(`team${i + 1}`).childNodes[0].nodeValue = `${i + 1}. tím: ${scores[i]}`;
+                document.getElementById(`score${i + 1}`).innerText = `${i + 1}. tím: ${scores[i]}`;
             }
         }
 
@@ -246,6 +311,8 @@
             if (currentQuestion < questions.length - 1) {
                 currentQuestion++;
                 loadQuestion();
+                document.getElementById('prev-button').disabled = false;
+                document.getElementById('next-button').disabled = true;
             } else {
                 alert('Kvíz ukončený!');
             }
@@ -255,6 +322,15 @@
             if (currentQuestion > 0) {
                 currentQuestion--;
                 loadQuestion();
+                document.getElementById('next-button').disabled = true;
+            }
+        }
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else if (document.exitFullscreen) {
+                document.exitFullscreen();
             }
         }
 
