@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kvíz</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+        }
+
+        .progress {
+            width: 100%;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            height: 20px;
+            background-color: #6c757d;
+            width: 0%;
+            transition: width 0.4s;
+        }
+
+        .quiz-container {
+            background-color: #ffffff;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 90%;
+            margin-top: 10px;
+        }
+
+        .question {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option {
+            background-color: #f1f3f5;
+            border: 1px solid #adb5bd;
+            border-radius: 5px;
+            padding: 10px;
+            cursor: pointer;
+            text-align: center;
+            transition: background-color 0.3s;
+        }
+
+        .option:hover {
+            background-color: #e9ecef;
+        }
+
+        .teams {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+        }
+
+        .team {
+            background-color: #e8f5e9;
+            border: 1px solid #a5d6a7;
+            border-radius: 5px;
+            padding: 10px;
+            width: 30%;
+            text-align: center;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .controls button {
+            background-color: #e0f7fa;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .controls button:hover {
+            background-color: #b2ebf2;
+        }
+
+        @media (max-width: 600px) {
+            .question {
+                font-size: 1rem;
+            }
+
+            .controls button {
+                padding: 8px;
+                font-size: 0.9rem;
+            }
+
+            .team {
+                padding: 8px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="progress">
+        <div class="progress-bar" id="progress-bar"></div>
+    </div>
+    <div class="quiz-container" id="quiz">
+        <div class="question" id="question">Otázka sa načítava...</div>
+        <div class="options" id="options"></div>
+        <div class="teams" id="teams">
+            <div class="team" id="team1">1. tím: 0</div>
+            <div class="team" id="team2">2. tím: 0</div>
+            <div class="team" id="team3">3. tím: 0</div>
+        </div>
+        <div class="controls">
+            <button onclick="previousQuestion()"><-- Späť</button>
+            <button onclick="nextQuestion()">Ďalej --></button>
+            <button onclick="evaluateQuestion()">VYHODNOŤ</button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: "Ktoré mesto je známe ako kolíska renesancie?",
+                options: ["Rím", "Florencia", "Paríž", "Atény"],
+                correct: 1
+            },
+            {
+                question: "Čo objavil Isaac Newton, keď mu na hlavu spadlo jablko?",
+                options: ["Teóriu gravitácie", "Teóriu relativity", "Elektrinu", "Atómovú teóriu"],
+                correct: 0
+            },
+            {
+                question: "Ktorá rieka je najdlhšia na svete?",
+                options: ["Amazonka", "Níl", "Jang-c'-ťiang", "Mississippi"],
+                correct: 1
+            }
+        ];
+
+        let currentQuestion = 0;
+        let scores = [0, 0, 0];
+        let teamAnswers = [null, null, null];
+
+        function loadQuestion() {
+            const questionElement = document.getElementById('question');
+            const optionsElement = document.getElementById('options');
+            const progressBar = document.getElementById('progress-bar');
+
+            questionElement.innerText = questions[currentQuestion].question;
+
+            progressBar.style.width = `${((currentQuestion + 1) / questions.length) * 100}%`;
+
+            optionsElement.innerHTML = '';
+            questions[currentQuestion].options.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.classList.add('option');
+                optionElement.innerText = `${String.fromCharCode(65 + index)}. ${option}`;
+                optionElement.onclick = () => selectOption(index);
+                optionsElement.appendChild(optionElement);
+            });
+
+            teamAnswers = [null, null, null];
+        }
+
+        function selectOption(index) {
+            const team = prompt("Zadajte číslo tímu (1, 2 alebo 3):");
+            if (team < 1 || team > 3 || isNaN(team)) {
+                alert("Neplatné číslo tímu.");
+                return;
+            }
+
+            teamAnswers[team - 1] = index;
+            updateOptionColors();
+        }
+
+        function updateOptionColors() {
+            const options = document.querySelectorAll('.option');
+            options.forEach((opt, index) => {
+                let bgColor = '#f1f3f5';
+                if (teamAnswers.includes(index)) {
+                    bgColor = '#d1ecf1';
+                }
+                opt.style.backgroundColor = bgColor;
+            });
+        }
+
+        function evaluateQuestion() {
+            for (let i = 0; i < teamAnswers.length; i++) {
+                if (teamAnswers[i] === questions[currentQuestion].correct) {
+                    scores[i] += 1;
+                }
+            }
+            updateScores();
+        }
+
+        function updateScores() {
+            for (let i = 0; i < scores.length; i++) {
+                document.getElementById(`team${i + 1}`).innerText = `${i + 1}. tím: ${scores[i]}`;
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                loadQuestion();
+            } else {
+                alert('Kvíz ukončený!');
+            }
+        }
+
+        function previousQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                loadQuestion();
+            }
+        }
+
+        loadQuestion();
+    </script>
+</body>
+</html>
