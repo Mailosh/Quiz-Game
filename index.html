@@ -68,7 +68,7 @@
         }
 
         .score {
-            font-size: 1.5rem; /* Zvýšené skóre */
+            font-size: 1.5rem;
             font-weight: bold;
             padding: 10px;
             border-radius: 10px;
@@ -188,8 +188,8 @@
         }
 
         .correct-answer {
-            background-color: #c8e6c9; /* Svetlozelená farba na zvýraznenie */
-            color: #2e7d32; /* Farba textu */
+            background-color: #c8e6c9;
+            color: #2e7d32;
         }
 
         .result {
@@ -200,7 +200,7 @@
 
         .winner {
             font-weight: bold;
-            color: #f57c00; /* Zvýraznenie víťaza */
+            color: #f57c00;
         }
 
         @media (max-width: 600px) {
@@ -219,7 +219,7 @@
             }
 
             .score {
-                font-size: 1.2rem; /* Zmenšenie skóre na menších obrazovkách */
+                font-size: 1.2rem;
             }
         }
     </style>
@@ -245,7 +245,7 @@
             <button onclick="evaluateQuestion()" id="evaluate-button" disabled>Vyhodnotenie</button>
             <button onclick="nextQuestion()" id="next-button" disabled>Ďalej --></button>
         </div>
-        <div class="result" id="result" style="display:none;"></div> <!-- Výsledky -->
+        <div class="result" id="result" style="display:none;"></div>
     </div>
 
     <script>
@@ -425,6 +425,7 @@
         let currentQuestion = 0;
         let scores = [0, 0, 0];
         let teamAnswers = [null, null, null];
+        let questionEvaluated = false; // Nová premená pre kontrolu vyhodnotenia
 
         function loadQuestion() {
             const questionElement = document.getElementById('question');
@@ -442,6 +443,7 @@
                 const optionElement = document.createElement('div');
                 optionElement.innerText = `${String.fromCharCode(65 + index)}. ${option}`;
                 optionElement.classList.add('option');
+                optionElement.onclick = () => selectOption(index); // Umožniť zmenu odpovede
                 optionsElement.appendChild(optionElement);
             });
 
@@ -456,7 +458,7 @@
                 questions[currentQuestion].options.forEach((_, index) => {
                     const button = document.createElement('button');
                     button.innerText = String.fromCharCode(65 + index);
-                    button.onclick = () => selectOption(index, i);
+                    button.onclick = () => selectTeamOption(index, i);
                     button.id = `team${i + 1}-option${index}`;
                     teamControls.appendChild(button);
                 });
@@ -467,11 +469,27 @@
 
             document.getElementById('evaluate-button').disabled = true;
             teamAnswers = [null, null, null];
+            questionEvaluated = false; // Resetovanie premennej na začiatku každej otázky
         }
 
-        function selectOption(optionIndex, teamIndex) {
-            if (teamAnswers[teamIndex] !== null) return;
+        function selectOption(optionIndex) {
+            const teamIndex = 0; // Predpokladáme, že je to tím 1 (môžete to upraviť)
+            if (teamAnswers[teamIndex] !== null) {
+                // Odstrániť predchádzajúcu odpoveď
+                document.getElementById(`team${teamIndex + 1}-option${teamAnswers[teamIndex]}`).classList.remove('selected');
+            }
+            teamAnswers[teamIndex] = optionIndex;
+            document.getElementById(`team${teamIndex + 1}-option${optionIndex}`).classList.add('selected');
 
+            if (teamAnswers.every(answer => answer !== null)) {
+                document.getElementById('evaluate-button').disabled = false;
+            }
+        }
+
+        function selectTeamOption(optionIndex, teamIndex) {
+            if (teamAnswers[teamIndex] !== null) {
+                document.getElementById(`team${teamIndex + 1}-option${teamAnswers[teamIndex]}`).classList.remove('selected');
+            }
             teamAnswers[teamIndex] = optionIndex;
             document.getElementById(`team${teamIndex + 1}-option${optionIndex}`).classList.add('selected');
 
@@ -481,6 +499,9 @@
         }
 
         function evaluateQuestion() {
+            if (questionEvaluated) return; // Ak bola otázka už vyhodnotená, nič nerob
+            questionEvaluated = true; // Nastaviť, že otázka bola vyhodnotená
+
             for (let i = 0; i < teamAnswers.length; i++) {
                 if (teamAnswers[i] === questions[currentQuestion].correct) {
                     scores[i] += 1;
