@@ -1,210 +1,549 @@
-import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-
-const Quiz = () => {
-  const [teamNames, setTeamNames] = useState(['', '', '']);
-  const [gameStarted, setGameStarted] = useState(false);
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [scores, setScores] = useState({ team1: 0, team2: 0, team3: 0 });
-  const [teamAnswers, setTeamAnswers] = useState({
-    team1: null,
-    team2: null,
-    team3: null
-  });
-  const [gameFinished, setGameFinished] = useState(false);
-  const [showCorrectAnswer, setShowCorrectAnswer] = useState(false);
-
-  const questions = [ /* ...your questions here... */ ];
-
-  const handleTeamNameChange = (index, value) => {
-    const newTeamNames = [...teamNames];
-    newTeamNames[index] = value;
-    setTeamNames(newTeamNames);
-  };
-
-  const startGame = () => {
-    if (teamNames.every(name => name.trim() !== '')) {
-      setGameStarted(true);
-    } else {
-      alert('Prosím, zadajte názvy všetkých tímov');
-    }
-  };
-
-  const handleTeamAnswer = (team, answer) => {
-    setTeamAnswers(prev => ({
-      ...prev,
-      [team]: answer
-    }));
-  };
-
-  const checkAnswersAndProceed = () => {
-    if (Object.values(teamAnswers).every(answer => answer !== null)) {
-      const newScores = { ...scores };
-      Object.entries(teamAnswers).forEach(([team, answer]) => {
-        if (answer === questions[currentQuestion].correct) {
-          newScores[team] += 1;
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kvíz</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #e8f5e9;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
         }
-      });
-      setScores(newScores);
-      setTeamAnswers({ team1: null, team2: null, team3: null });
 
-      if (currentQuestion === questions.length - 1) {
-        setGameFinished(true);
-      } else {
-        setCurrentQuestion(prev => prev + 1);
-      }
-    }
-  };
+        .fullscreen-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #388e3c;
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
 
-  const evaluateAnswers = () => {
-    setShowCorrectAnswer(true);
-  };
+        .fullscreen-button:hover {
+            background-color: #2e7d32;
+        }
 
-  const getWinner = () => {
-    const maxScore = Math.max(scores.team1, scores.team2, scores.team3);
-    const winners = [];
-    if (scores.team1 === maxScore) winners.push(teamNames[0]);
-    if (scores.team2 === maxScore) winners.push(teamNames[1]);
-    if (scores.team3 === maxScore) winners.push(teamNames[2]);
-    return winners.length > 1 ? "Remíza medzi: " + winners.join(", ") : "Víťazom je: " + winners[0];
-  };
+        .progress {
+            width: 100%;
+            background-color: #c8e6c9;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
 
-  if (!gameStarted) {
-    return (
-      <div className="font-['Roboto',sans-serif] bg-gray-50 min-h-screen p-4">
-        <Card className="w-full max-w-4xl mx-auto shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-2xl text-center">Zadajte názvy tímov</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {teamNames.map((name, index) => (
-              <div key={index} className="flex items-center space-x-2">
-                <span className="w-20">Tím {index + 1}:</span>
-                <Input
-                  value={name}
-                  onChange={(e) => handleTeamNameChange(index, e.target.value)}
-                  placeholder={`Názov tímu ${index + 1}`}
-                />
-              </div>
-            ))}
-            <Button onClick={startGame} className="w-full mt-4">
-              Začať hru
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+        .progress-bar {
+            height: 20px;
+            background-color: #4caf50;
+            width: 0%;
+            transition: width 0.4s;
+        }
 
-  if (gameFinished) {
-    return (
-      <div className="font-['Roboto',sans-serif] bg-gray-50 min-h-screen p-4">
-        <Card className="w-full max-w-4xl mx-auto shadow-lg">
-          <CardHeader className="bg-gradient-to-r from-pink-50 to-purple-50">
-            <CardTitle className="text-2xl text-center text-gray-700">
-              Koniec hry!
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-6">
-            <div className="text-center space-y-4">
-              <h2 className="text-3xl font-bold text-gray-800">{getWinner()}</h2>
-              <div className="space-y-2">
-                <p className="text-xl">{teamNames[0]}: {scores.team1} bodov</p>
-                <p className="text-xl">{teamNames[1]}: {scores.team2} bodov</p>
-                <p className="text-xl">{teamNames[2]}: {scores.team3} bodov</p>
-              </div>
-              <div className="mt-8 bg-black rounded-lg p-4">
-                <div className="text-white text-xl mb-2">
-                  NEMÁM PROBLÉM S ALKOHOLOM.
-                </div>
-                <div className="text-white text-xl mb-4">
-                  IBA BEZ NEHO
-                </div>
-                <div className="text-white text-lg italic">
-                  - PETER STAŠÁK, OBJAVITEĽ
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+        .quiz-container {
+            background-color: #ffffff;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            max-width: 900px;
+            width: 95%;
+            margin-top: 10px;
+        }
 
-  return (
-    <div className="font-['Roboto',sans-serif] bg-gray-50 min-h-screen p-4">
-      <Card className="w-full max-w-4xl mx-auto shadow-lg">
-        <CardHeader className="bg-gradient-to-r from-pink-50 to-purple-50">
-          <CardTitle className="flex justify-between items-center text-2xl">
-            <span className="text-gray-700">Otázka {currentQuestion + 1}/10</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-6">
-          <div className="space-y-6">
-            <div className="text-xl font-medium text-gray-800">
-              {questions[currentQuestion].question}
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr>
-                    <th className="border p-2">Možnosti</th>
-                    {teamNames.map((name, index) => (
-                      <th key={index} className="border p-2 text-center">
-                        {name}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {questions[currentQuestion].options.map((option, optionIndex) => (
-                    <tr key={optionIndex}>
-                      <td className="border p-2">{option}</td>
-                      {['team1', 'team2', 'team3'].map((team, teamIndex) => (
-                        <td key={`${team}-${optionIndex}`} className="border p-2 text-center">
-                          <Button
-                            onClick={() => handleTeamAnswer(team, optionIndex)}
-                            variant={teamAnswers[team] === optionIndex ? "default" : "outline"}
-                            className={`w-full ${showCorrectAnswer && optionIndex === questions[currentQuestion].correct ? 'bg-green-500' : ''}`}
-                          >
-                            {String.fromCharCode(65 + optionIndex)}
-                          </Button>
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div className="flex justify-between">
-              <div className="space-y-2">
-                {teamNames.map((name, index) => (
-                  <p key={index} className="font-medium">
-                    {name}: {scores[`team${index + 1}`]} bodov
-                  </p>
-                ))}
-              </div>
-              <Button 
-                onClick={evaluateAnswers}
-                className="self-end"
-              >
-                Vyhodnotenie
-              </Button>
-            </div>
-            <Button 
-              onClick={checkAnswersAndProceed}
-              disabled={!Object.values(teamAnswers).every(answer => answer !== null)}
-              className="self-end mt-4"
-            >
-              Ďalšia otázka
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+        .scores {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 15px;
+        }
+
+        .score {
+            font-size: 1.5rem; /* Zvýšené skóre */
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+            width: 30%;
+            background-color: #f1f8e9;
+        }
+
+        .score:nth-child(1) {
+            color: #2e7d32;
+        }
+
+        .score:nth-child(2) {
+            color: #f57c00;
+        }
+
+        .score:nth-child(3) {
+            color: #1565c0;
+        }
+
+        .question {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .layout {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid #cfd8dc;
+            border-radius: 5px;
+            background-color: #f9fbe7;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .option:hover {
+            background-color: #e6ee9c;
+        }
+
+        .teams {
+            display: flex;
+            justify-content: space-around;
+            flex-grow: 1;
+            gap: 10px;
+        }
+
+        .team {
+            background-color: #ffffff;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 10px;
+            flex-grow: 1;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .team-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .team-controls button {
+            width: 100%;
+            padding: 10px;
+            font-size: 1rem;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .team-controls button.selected {
+            background-color: #aed581;
+        }
+
+        .team-controls button.disabled {
+            background-color: #e0e0e0;
+            cursor: not-allowed;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .controls button {
+            background-color: #e0f7fa;
+            border: none;
+            border-radius: 5px;
+            padding: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .controls button:hover {
+            background-color: #b2ebf2;
+        }
+
+        .correct-answer {
+            background-color: #c8e6c9; /* Svetlozelená farba na zvýraznenie */
+            color: #2e7d32; /* Farba textu */
+        }
+
+        .result {
+            margin-top: 20px;
+            font-size: 1.5rem;
+            text-align: center;
+        }
+
+        .winner {
+            font-weight: bold;
+            color: #f57c00; /* Zvýraznenie víťaza */
+        }
+
+        @media (max-width: 600px) {
+            .question {
+                font-size: 1.5rem;
+            }
+
+            .controls button {
+                padding: 8px;
+                font-size: 0.9rem;
+            }
+
+            .team {
+                padding: 8px;
+                font-size: 0.9rem;
+            }
+
+            .score {
+                font-size: 1.2rem; /* Zmenšenie skóre na menších obrazovkách */
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="fullscreen-button" onclick="toggleFullScreen()">Full Screen</button>
+    <div class="progress">
+        <div class="progress-bar" id="progress-bar"></div>
     </div>
-  );
-};
+    <div class="quiz-container" id="quiz">
+        <div class="scores">
+            <div class="score" id="score1">1. tím: 0</div>
+            <div class="score" id="score2">2. tím: 0</div>
+            <div class="score" id="score3">3. tím: 0</div>
+        </div>
+        <div class="question" id="question">Otázka sa načítava...</div>
+        <div class="layout">
+            <div class="options" id="options"></div>
+            <div class="teams" id="teams"></div>
+        </div>
+        <div class="controls">
+            <button onclick="previousQuestion()" id="prev-button" disabled><-- Späť</button>
+            <button onclick="evaluateQuestion()" id="evaluate-button" disabled>Vyhodnotenie</button>
+            <button onclick="nextQuestion()" id="next-button" disabled>Ďalej --></button>
+        </div>
+        <div class="result" id="result" style="display:none;"></div> <!-- Výsledky -->
+    </div>
 
-export default Quiz;
+    <script>
+        const questions = [
+            {
+      question: "Ktorá krajina sa stala prvou na svete, ktorá legalizovala homosexuálne manželstvá v roku 2001?",
+      options: ["Dánsko", "Holandsko", "Švédsko", "Nórsko"],
+      correct: 1
+    },
+    {
+      question: "Kto bol posledným panovníkom Rímskej ríše?",
+      options: ["Nero", "Romulus Augustus", "Julius Caesar", "Augustus"],
+      correct: 1
+    },
+    {
+      question: "Aký bol hlavný dôvod pre začiatok Prvej svetovej vojny?",
+      options: ["Ekonomické krízy", "Atentát na Františka Ferdinanda", "Rozpad Rímskej ríše", "Koloniálne vojny"],
+      correct: 1
+    },
+    {
+      question: "Ktoré je najhlbšie miesto na Zemi?",
+      options: ["Mariánska priekopa", "Puerto Rico priekopa", "Kermadec priekopa", "Tonga priekopa"],
+      correct: 0
+    },
+    {
+      question: "Aké sú tri najväčšie krajiny na svete podľa rozlohy?",
+      options: ["Kanada, USA, Rusko", "Rusko, Kanada, Čína", "Čína, India, USA", "Brazília, Austrália, Rusko"],
+      correct: 1
+    },
+    {
+      question: "Aký je chemický vzorec pre glukózu?",
+      options: ["C6H12O6", "C12H22O11", "C6H10O5", "C5H10O5"],
+      correct: 0
+    },
+    {
+      question: "Ktorý planetárny systém má najviac známych exoplanét?",
+      options: ["Trappist-1", "Kepler-90", "Proxima Centauri", "Alpha Centauri"],
+      correct: 1
+    },
+    {
+      question: "Kto napísal román 'Sto rokov samoty'?",
+      options: ["Gabriel García Márquez", "Julio Cortázar", "Mario Vargas Llosa", "Jorge Luis Borges"],
+      correct: 0
+    },
+    {
+      question: "Kto je autorom slávneho obrazu 'Hlava noci'?",
+      options: ["Salvador Dalí", "Pablo Picasso", "Vincent van Gogh", "Edvard Munch"],
+      correct: 0
+    },
+    {
+      question: "Kto je považovaný za 'otca' internetu?",
+      options: ["Tim Berners-Lee", "Vint Cerf", "Bill Gates", "Steve Jobs"],
+      correct: 1
+    },
+    {
+      question: "Aké sú hlavné rozdiely medzi AI a strojovým učením?",
+      options: ["AI je širší pojem, strojové učenie je jeho podmnožina", "AI je len pre roboty, strojové učenie pre počítače", "AI vždy potrebuje dáta, strojové učenie nie", "AI je staršie ako strojové učenie"],
+      correct: 0
+    },
+    {
+      question: "Aký je rozdiel medzi klasickým a operantným podmieňovaním?",
+      options: ["Klasické je o reakciách, operantné o odmenách", "Oba sú rovnaké", "Klasické je o učení, operantné o spomienkach", "Klasické je vedomé, operantné podvedomé"],
+      correct: 0
+    },
+    {
+      question: "Kto formuloval teóriu psychológie osobnosti, známa ako 'Big Five'?",
+      options: ["Carl Jung", "Sigmund Freud", "Costa a McCrae", "Alfred Adler"],
+      correct: 2
+    },
+    {
+      question: "Kto zaviedol pojem 'neviditeľná ruka' trhu?",
+      options: ["Karl Marx", "Adam Smith", "John Maynard Keynes", "Milton Friedman"],
+      correct: 1
+    },
+    {
+      question: "Aký je hlavný faktor ovplyvňujúci infláciu?",
+      options: ["Dopyt po tovaroch a službách", "Zmeny v daňovej politike", "Miera nezamestnanosti", "Nárast populácie"],
+      correct: 0
+    },
+    {
+      question: "Kto napísal dielo 'Kritika čistého rozumu'?",
+      options: ["Friedrich Nietzsche", "Immanuel Kant", "Georg Wilhelm Friedrich Hegel", "John Locke"],
+      correct: 1
+    },
+    {
+      question: "Aký je základný princíp utilitarizmu?",
+      options: ["Princíp užitočnosti", "Princíp absolútnej pravdy", "Princíp individuálnych práv", "Princíp nehmotného dobra"],
+      correct: 0
+    },
+    {
+      question: "Ktorý športovec vyhral najviac zlatých medailí na olympijských hrách?",
+      options: ["Usain Bolt", "Michael Phelps", "Carl Lewis", "Larisa Latynina"],
+      correct: 1
+    },
+    {
+      question: "Aký je najväčší organizmus na Zemi?",
+      options: ["Modrá veľryba", "Huba Armillaria", "Sekvoja", "Baobab"],
+      correct: 1
+    },
+    {
+      question: "Ktorá krajina je domovom najstaršej univerzity na svete?",
+      options: ["Taliansko", "Maroko", "Anglicko", "Nemecko"],
+      correct: 1
+    },
+    {
+      question: "Kto zrežíroval film 'Občan Kane'?",
+      options: ["Alfred Hitchcock", "Orson Welles", "Martin Scorsese", "Francis Ford Coppola"],
+      correct: 1
+    },
+    {
+      question: "Kto je považovaný za kráľa popu?",
+      options: ["Elvis Presley", "Michael Jackson", "Prince", "Freddie Mercury"],
+      correct: 1
+    },
+    {
+      question: "Aký je najpredávanejší album všetkých čias?",
+      options: ["The Dark Side of the Moon", "Thriller", "Back in Black", "The Beatles (White album)"],
+      correct: 1
+    },
+    {
+      question: "Ktorý singel bol v roku 1987 najväčší hit v Británii?",
+      options: ["'I Knew You Were Waiting (For Me)' - George Michael a Aretha Franklin", "'Faith' - George Michael", "'Livin' on a Prayer' - Bon Jovi", "'With or Without You' - U2"],
+      correct: 0
+    },
+    {
+      question: "Kto zložil skladbu 'Symfónia č. 9'?",
+      options: ["Ludwig van Beethoven", "Wolfgang Amadeus Mozart", "Johannes Brahms", "Gustav Mahler"],
+      correct: 0
+    },
+    {
+      question: "Kto skomponoval hudbu k filmu 'Star Wars'?",
+      options: ["Hans Zimmer", "John Williams", "Ennio Morricone", "Howard Shore"],
+      correct: 1
+    },
+    {
+      question: "Aký je názov známeho filmu, kde hrá postavu Jacka Dawsona Leonardo DiCaprio?",
+      options: ["Inception", "Titanic", "The Revenant", "Catch Me If You Can"],
+      correct: 1
+    },
+    {
+      question: "Ktorý singel Petra Nagya bol najčastejšie hraný v rádiu?",
+      options: ["'Profesor Indigo'", "'Kristínka iba spí'", "'Už je tu láska'", "'So mnou nikdy nezostarneš'"],
+      correct: 1
+    },
+    {
+      question: "Ktorá krajina sa stala 32. krajinou, ktorá vstúpila do NATO v roku 2024?",
+      options: ["Fínsko", "Švédsko", "Čierna Hora", "Severné Macedónsko"],
+      correct: 1
+    },
+    {
+      question: "Ktorý francúzsky dezert, vyrobený z bielkov a cukru, je známy svojou ľahkou a nadýchanou textúrou?",
+      options: ["Tarte Tatin", "Mousse au Chocolat", "Macaron", "Crème Brûlée"],
+      correct: 2
+    },
+    {
+      question: "Ktoré víno je známe svojou schopnosťou zlepšovať sa s vekom a často sa odporúča skladovať ho niekoľko rokov?",
+      options: ["Sauvignon Blanc", "Beaujolais Nouveau", "Barolo", "Lambrusco"],
+      correct: 2
+    },
+    {
+      question: "Aký význam má meno 'Stalin,' ktoré si Josif Džugašvili zvolil?",
+      options: ["Muž z ocele", "Muž z hory", "Muž z východu", "Muž z neba"],
+      correct: 0
+    },
+    {
+      question: "Kedy bola oficiálne zahájená výstavba Transsibírskej magistrály?",
+      options: ["1891", "1895", "1900", "1903"],
+      correct: 0
+    },
+    {
+      question: "Čo je biofilný dizajn?",
+      options: ["Dizajn, ktorý integruje technológie do budov.", "Dizajn, ktorý spája ľudí s prírodou pomocou prírodných prvkov.", "Dizajn, ktorý sa sústreďuje na minimalizmus a funkčnosť.", "Dizajn, ktorý používa tradičné materiály bez moderných inovácií."],
+      correct: 1
+    }
+  ];
+
+        let currentQuestion = 0;
+        let scores = [0, 0, 0];
+        let teamAnswers = [null, null, null];
+
+        function loadQuestion() {
+            const questionElement = document.getElementById('question');
+            const optionsElement = document.getElementById('options');
+            const teamsElement = document.getElementById('teams');
+            const progressBar = document.getElementById('progress-bar');
+
+            questionElement.innerText = `Otázka ${currentQuestion + 1}/${questions.length}: ${questions[currentQuestion].question}`;
+            progressBar.style.width = `${((currentQuestion + 1) / questions.length) * 100}%`;
+
+            optionsElement.innerHTML = '';
+            teamsElement.innerHTML = '';
+
+            questions[currentQuestion].options.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.innerText = `${String.fromCharCode(65 + index)}. ${option}`;
+                optionElement.classList.add('option');
+                optionsElement.appendChild(optionElement);
+            });
+
+            for (let i = 0; i < scores.length; i++) {
+                const teamElement = document.createElement('div');
+                teamElement.classList.add('team');
+                teamElement.id = `team${i + 1}`;
+
+                const teamControls = document.createElement('div');
+                teamControls.classList.add('team-controls');
+
+                questions[currentQuestion].options.forEach((_, index) => {
+                    const button = document.createElement('button');
+                    button.innerText = String.fromCharCode(65 + index);
+                    button.onclick = () => selectOption(index, i);
+                    button.id = `team${i + 1}-option${index}`;
+                    teamControls.appendChild(button);
+                });
+
+                teamElement.appendChild(teamControls);
+                teamsElement.appendChild(teamElement);
+            }
+
+            document.getElementById('evaluate-button').disabled = true;
+            teamAnswers = [null, null, null];
+        }
+
+        function selectOption(optionIndex, teamIndex) {
+            if (teamAnswers[teamIndex] !== null) return;
+
+            teamAnswers[teamIndex] = optionIndex;
+            document.getElementById(`team${teamIndex + 1}-option${optionIndex}`).classList.add('selected');
+
+            if (teamAnswers.every(answer => answer !== null)) {
+                document.getElementById('evaluate-button').disabled = false;
+            }
+        }
+
+        function evaluateQuestion() {
+            for (let i = 0; i < teamAnswers.length; i++) {
+                if (teamAnswers[i] === questions[currentQuestion].correct) {
+                    scores[i] += 1;
+                }
+            }
+            updateScores();
+            highlightCorrectAnswer();
+            document.getElementById('next-button').disabled = false;
+        }
+
+        function highlightCorrectAnswer() {
+            const correctOptionIndex = questions[currentQuestion].correct;
+            const correctButton = document.querySelector(`.options div:nth-child(${correctOptionIndex + 1})`);
+            correctButton.classList.add('correct-answer');
+        }
+
+        function updateScores() {
+            for (let i = 0; i < scores.length; i++) {
+                document.getElementById(`score${i + 1}`).innerText = `${i + 1}. tím: ${scores[i]}`;
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                loadQuestion();
+                document.getElementById('prev-button').disabled = false;
+                document.getElementById('next-button').disabled = true;
+            } else {
+                showResults();
+            }
+        }
+
+        function previousQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                loadQuestion();
+                document.getElementById('next-button').disabled = true;
+            }
+        }
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+
+        function showResults() {
+            const resultElement = document.getElementById('result');
+            const winnerIndex = scores.indexOf(Math.max(...scores));
+            resultElement.innerHTML = `Vyhodnotenie:<br>
+            1. tím: ${scores[0]}<br>
+            2. tím: ${scores[1]}<br>
+            3. tím: ${scores[2]}<br>
+            <span class="winner">Víťaz: Tím ${winnerIndex + 1}!</span><br>
+            Gratulujeme víťazom!`;
+            resultElement.style.display = 'block';
+            document.getElementById('quiz').style.display = 'none';
+        }
+
+        loadQuestion();
+    </script>
+</body>
+</html>
